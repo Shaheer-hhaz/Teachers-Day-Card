@@ -350,7 +350,8 @@
      * All visual updates happen here — called every frame.
      */
     function renderCard() {
-        const a        = clamp(angle, PHYSICS.MIN_ANGLE - 8, PHYSICS.MAX_ANGLE + 8);
+        // Clamp visual rotation at 0 to prevent the cover from clipping through the base (Bug 1)
+        const a        = clamp(angle, PHYSICS.MIN_ANGLE, PHYSICS.MAX_ANGLE + 8);
         const progress = clamp(a / PHYSICS.MAX_ANGLE, 0, 1);      // 0 → 1
         const aRad     = degToRad(a);
 
@@ -372,12 +373,13 @@
         if (foldShadowR) foldShadowR.style.opacity = shadowFactor * 0.9;
 
         // ── Cover drop-shadow (the shadow the cover casts on "the table") ──
-        // Moves & intensifies as the cover lifts off the base
+        // Moves & intensifies as the cover lifts off the base.
+        // Applied to coverFront's box-shadow to avoid flattening cardCover's 3D context (Bug 2)
         const shadowOffX   = -(shadowFactor * 10).toFixed(1);
         const shadowBlur   = (shadowFactor * 22).toFixed(1);
-        const shadowAlpha  = (shadowFactor * 0.28).toFixed(2);
-        cardCover.style.filter =
-            `drop-shadow(${shadowOffX}px 3px ${shadowBlur}px rgba(0,0,0,${shadowAlpha}))`;
+        const shadowAlpha  = Math.max(0, shadowFactor * 0.28).toFixed(2);
+        document.getElementById('coverFront').style.boxShadow = 
+            `${shadowOffX}px 3px ${shadowBlur}px rgba(0,0,0,${shadowAlpha}), inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.15)`;
     }
 
     // ========================================================
