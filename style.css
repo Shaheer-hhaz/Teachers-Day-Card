@@ -1,0 +1,730 @@
+/* ============================================
+   RESET & CUSTOM PROPERTIES
+   ============================================ */
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* ── Palette ── */
+    --bg-dark:       #070b16;
+    --bg-mid:        #0d1525;
+    --cover-base:    #0d1b3e;
+    --cover-light:   #15285a;
+    --cover-dark:    #091530;
+    --gold:          #c4a35a;
+    --gold-dim:      rgba(196,163,90,0.30);
+    --gold-faint:    rgba(196,163,90,0.08);
+    --paper:         #f5f0e8;
+    --paper-dark:    #e8e0d2;
+    --paper-fold:    #d0c7b8;
+    --txt-light:     #e8dfd3;
+    --txt-muted:     rgba(232,223,211,0.55);
+    --txt-dark:      #3a3028;
+    --txt-dark-m:    rgba(58,48,40,0.55);
+
+    /* ── Sizing ── */
+    --page-w: min(24vw, 300px);
+    --page-h: calc(var(--page-w) * 1.48);
+    --closed-scale: 1.15;
+
+    /* ── Fonts ── */
+    --f-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --f-body:    'Inter', -apple-system, 'Segoe UI', Helvetica, sans-serif;
+    --f-eq:      Georgia, 'Times New Roman', serif;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+    :root {
+        --page-w: min(30vw, 290px);
+        --closed-scale: 1.16;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    :root {
+        --page-w: min(44vw, 38vh, 270px);
+        --closed-scale: 1.20;
+    }
+}
+
+@media (max-width: 400px) {
+    :root {
+        --page-w: min(44vw, 35vh, 250px);
+        --closed-scale: 1.22;
+    }
+}
+
+/* ============================================
+   BODY & PAGE
+   ============================================ */
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: var(--f-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(168deg, var(--bg-dark) 0%, var(--bg-mid) 100%);
+    color: var(--txt-light);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* ============================================
+   BACKGROUND — stars + floating equations
+   ============================================ */
+
+.bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+/* Star field via box-shadow */
+.bg::before {
+    content: '';
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    top: 0; left: 0;
+    background: transparent;
+    box-shadow:
+        42px  68px  0 0.4px rgba(255,255,255,0.18),
+        130px 45px  0 0.3px rgba(255,255,255,0.14),
+        210px 150px 0 0.5px rgba(255,255,255,0.22),
+        320px 80px  0 0.3px rgba(255,255,255,0.12),
+        55px  220px 0 0.4px rgba(255,255,255,0.16),
+        480px 310px 0 0.5px rgba(255,255,255,0.20),
+        175px 380px 0 0.3px rgba(255,255,255,0.13),
+        600px 120px 0 0.4px rgba(255,255,255,0.17),
+        720px 280px 0 0.3px rgba(255,255,255,0.11),
+        90px  500px 0 0.5px rgba(255,255,255,0.19),
+        380px 440px 0 0.3px rgba(255,255,255,0.14),
+        550px 55px  0 0.4px rgba(255,255,255,0.16),
+        800px 400px 0 0.3px rgba(255,255,255,0.13),
+        260px 520px 0 0.5px rgba(255,255,255,0.21),
+        670px 180px 0 0.3px rgba(255,255,255,0.12),
+        440px 600px 0 0.4px rgba(255,255,255,0.15),
+        150px 640px 0 0.3px rgba(255,255,255,0.10),
+        820px 50px  0 0.5px rgba(255,255,255,0.18),
+        500px 480px 0 0.3px rgba(255,255,255,0.14),
+        750px 560px 0 0.4px rgba(255,255,255,0.16),
+        350px 200px 0 0.3px rgba(255,255,255,0.11),
+        900px 320px 0 0.5px rgba(255,255,255,0.17),
+        620px 620px 0 0.3px rgba(255,255,255,0.13),
+        50px  750px 0 0.4px rgba(255,255,255,0.15);
+    animation: starPulse 10s ease-in-out infinite alternate;
+}
+
+@keyframes starPulse {
+    0%   { opacity: 0.65; }
+    100% { opacity: 1; }
+}
+
+/* Floating equations */
+.bg-eq {
+    position: absolute;
+    font-family: var(--f-eq);
+    font-style: italic;
+    font-size: clamp(9px, 1.1vw, 15px);
+    color: rgba(255,255,255,0.06);
+    animation: eqFloat 9s ease-in-out infinite;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.bg-eq:nth-child(odd)  { animation-duration: 11s; }
+.bg-eq:nth-child(even) { animation-duration: 8s; }
+
+@keyframes eqFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-12px); }
+}
+
+/* ============================================
+   CARD SCENE — 3D perspective wrapper
+   ============================================ */
+
+.scene {
+    position: relative;
+    z-index: 1;
+    perspective: 1100px;
+    perspective-origin: center center;
+}
+
+.card-wrapper {
+    /* Transforms controlled by JS: translateX + scale */
+    transform-origin: center center;
+    will-change: transform;
+}
+
+.card {
+    position: relative;
+    width: calc(var(--page-w) * 2);
+    height: var(--page-h);
+    transform-style: preserve-3d;
+    pointer-events: none; /* children handle interaction */
+}
+
+/* ============================================
+   CARD SPINE — fold line
+   ============================================ */
+
+.card-spine {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to right,
+        rgba(120,105,85,0.25),
+        rgba(160,148,132,0.4),
+        rgba(120,105,85,0.25));
+    transform: translateX(-50%);
+    z-index: 4;
+    border-radius: 1px;
+    pointer-events: none;
+}
+
+/* ============================================
+   PAGE TEXTURES
+   ============================================ */
+
+.page-texture {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    border-radius: inherit;
+    background-image:
+        repeating-linear-gradient(
+            0deg,
+            transparent, transparent 3px,
+            rgba(139,119,88,0.018) 3px, rgba(139,119,88,0.018) 4px),
+        repeating-linear-gradient(
+            90deg,
+            transparent, transparent 4px,
+            rgba(139,119,88,0.012) 4px, rgba(139,119,88,0.012) 5px);
+}
+
+.page-texture.dark {
+    background-image:
+        repeating-linear-gradient(
+            45deg,
+            transparent, transparent 1px,
+            rgba(255,255,255,0.006) 1px, rgba(255,255,255,0.006) 2px),
+        repeating-linear-gradient(
+            -45deg,
+            transparent, transparent 2px,
+            rgba(255,255,255,0.004) 2px, rgba(255,255,255,0.004) 3px);
+}
+
+/* ============================================
+   FOLD SHADOWS — cast by the cover near spine
+   ============================================ */
+
+.fold-shadow {
+    position: absolute;
+    top: 0;
+    width: 22px;
+    height: 100%;
+    pointer-events: none;
+    z-index: 6;
+    opacity: 0;
+    transition: none;
+}
+
+.fold-shadow.left {
+    left: 0;
+    background: linear-gradient(to right, rgba(0,0,0,0.18), transparent);
+}
+
+.fold-shadow.right {
+    right: 0;
+    background: linear-gradient(to left, rgba(0,0,0,0.18), transparent);
+}
+
+/* ============================================
+   CARD BASE — inside right page (static)
+   ============================================ */
+
+.card-base {
+    position: absolute;
+    right: 0;
+    width: var(--page-w);
+    height: 100%;
+    background: linear-gradient(172deg, var(--paper) 0%, var(--paper-dark) 100%);
+    border-radius: 0 5px 5px 0;
+    overflow: hidden;
+    pointer-events: auto;
+    touch-action: none;
+    box-shadow:
+        3px 4px 14px rgba(0,0,0,0.12),
+        inset -1px 0 4px rgba(0,0,0,0.04);
+}
+
+/* ============================================
+   CARD COVER — rotating hinged element
+   ============================================ */
+
+.card-cover {
+    position: absolute;
+    right: 0;
+    width: var(--page-w);
+    height: 100%;
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    touch-action: none;
+    cursor: grab;
+    z-index: 5;
+    pointer-events: auto;
+    will-change: transform;
+}
+
+.card-cover:active { cursor: grabbing; }
+
+/* Shared face rules */
+.cover-front,
+.cover-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+}
+
+/* ─── FRONT FACE (cover design) ─── */
+
+.cover-front {
+    background: linear-gradient(158deg,
+        var(--cover-light) 0%,
+        var(--cover-base) 45%,
+        var(--cover-dark) 100%);
+    border-radius: 0 5px 5px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10% 8%;
+    box-shadow:
+        4px 6px 24px rgba(0,0,0,0.28),
+        inset 0 1px 0 rgba(255,255,255,0.04),
+        inset 0 -1px 0 rgba(0,0,0,0.15);
+}
+
+/* Atom SVG */
+.cover-atom {
+    position: absolute;
+    width: 65%;
+    height: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+/* Coordinate axes */
+.cover-axes {
+    position: absolute;
+    bottom: 12%;
+    left: 8%;
+    width: 22px;
+    height: 22px;
+    opacity: 0.8;
+}
+
+/* Sine wave */
+.cover-wave {
+    position: absolute;
+    bottom: 6%;
+    left: 15%;
+    width: 70%;
+    height: 12px;
+    opacity: 0.9;
+}
+
+/* Watermark */
+.cover-watermark {
+    position: absolute;
+    top: 8%;
+    right: 8%;
+    font-family: var(--f-eq);
+    font-style: italic;
+    font-size: clamp(8px, 1.1vw, 13px);
+    color: rgba(196,163,90,0.10);
+    letter-spacing: 0.06em;
+    pointer-events: none;
+}
+
+/* Cover text content */
+.cover-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(6px, 1.5vw, 14px);
+}
+
+.cover-pre {
+    font-family: var(--f-body);
+    font-weight: 300;
+    font-size: clamp(8px, 1vw, 13px);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+}
+
+.cover-title {
+    font-family: var(--f-display);
+    font-weight: 500;
+    line-height: 1.15;
+    color: var(--txt-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.cover-title .title-line {
+    display: block;
+    font-size: clamp(16px, 3.2vw, 36px);
+}
+
+.cover-rule {
+    width: 50px;
+    height: 1px;
+    background: var(--gold-dim);
+    border-radius: 1px;
+}
+
+.cover-tagline {
+    font-family: var(--f-body);
+    font-weight: 300;
+    font-size: clamp(8px, 1vw, 12px);
+    line-height: 1.65;
+    color: var(--txt-muted);
+    text-align: center;
+}
+
+/* ─── DRAG HINT ─── */
+
+.drag-hint {
+    position: absolute;
+    bottom: 5%;
+    right: 8%;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--f-body);
+    font-weight: 400;
+    font-size: clamp(8px, 0.9vw, 11px);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    z-index: 3;
+    animation: hintPulse 2.8s ease-in-out infinite;
+    transition: opacity 0.5s ease;
+}
+
+.drag-hint.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.hint-arrow {
+    display: inline-block;
+    font-size: 1.1em;
+}
+
+@keyframes hintPulse {
+    0%, 100% { transform: translateX(0); opacity: 0.45; }
+    50%      { transform: translateX(-6px); opacity: 0.75; }
+}
+
+/* ─── BACK FACE (inside left) ─── */
+
+.cover-back {
+    transform: rotateY(180deg);
+    background: linear-gradient(172deg, var(--paper) 0%, var(--paper-dark) 100%);
+    border-radius: 5px 0 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8%;
+    box-shadow:
+        -3px 4px 14px rgba(0,0,0,0.12),
+        inset 1px 0 4px rgba(0,0,0,0.04);
+}
+
+.inside-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: clamp(8px, 1.5vw, 16px);
+    color: var(--txt-dark);
+    width: 100%;
+}
+
+/* Pendulum SVG */
+.il-pendulum {
+    width: 55%;
+    max-width: 140px;
+    height: auto;
+    opacity: 0.85;
+    margin-bottom: clamp(2px, 0.5vw, 6px);
+}
+
+/* Equation */
+.il-equation {
+    font-family: var(--f-eq);
+    font-style: italic;
+    font-size: clamp(18px, 3vw, 32px);
+    font-weight: normal;
+    color: var(--txt-dark);
+    letter-spacing: 0.06em;
+}
+
+.il-eq-label {
+    font-family: var(--f-body);
+    font-weight: 300;
+    font-size: clamp(6px, 0.7vw, 9px);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--txt-dark-m);
+}
+
+.il-rule {
+    width: 35px;
+    height: 1px;
+    background: rgba(58,48,40,0.15);
+    border-radius: 1px;
+}
+
+.il-quote {
+    font-family: var(--f-display);
+    font-style: normal;
+    font-weight: 400;
+    font-size: clamp(9px, 1.1vw, 14px);
+    line-height: 1.7;
+    color: var(--txt-dark-m);
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.il-quote em {
+    color: var(--txt-dark);
+    font-style: italic;
+}
+
+/* ============================================
+   INSIDE RIGHT — message content
+   ============================================ */
+
+.inside-right {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8% 7%;
+    height: 100%;
+    gap: clamp(6px, 1.2vw, 14px);
+    color: var(--txt-dark);
+}
+
+.ir-title {
+    font-family: var(--f-display);
+    font-weight: 500;
+    font-size: clamp(14px, 2.4vw, 26px);
+    color: var(--txt-dark);
+    letter-spacing: 0.02em;
+    margin-bottom: clamp(2px, 0.5vw, 6px);
+}
+
+.ir-body {
+    font-family: var(--f-body);
+    font-weight: 300;
+    font-size: clamp(8px, 1vw, 12px);
+    line-height: 1.7;
+    color: var(--txt-dark-m);
+}
+
+.ir-body em {
+    font-style: italic;
+    color: var(--txt-dark);
+}
+
+.ir-closing {
+    margin-top: clamp(4px, 0.8vw, 10px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(3px, 0.5vw, 6px);
+}
+
+.closing-line {
+    font-family: var(--f-display);
+    font-weight: 500;
+    font-size: clamp(10px, 1.4vw, 16px);
+    color: var(--txt-dark);
+}
+
+.heart {
+    display: inline;
+    font-style: normal;
+}
+
+.signature {
+    font-family: var(--f-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(9px, 1.1vw, 13px);
+    color: var(--txt-dark-m);
+}
+
+/* ─── EASTER EGG ─── */
+
+.ir-easter-egg {
+    position: absolute;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    opacity: 0;
+    transition: opacity 1.2s ease 0.6s;
+}
+
+.card.is-open .ir-easter-egg {
+    opacity: 0.6;
+}
+
+.egg-eq {
+    font-family: var(--f-eq);
+    font-style: italic;
+    font-size: clamp(8px, 0.9vw, 11px);
+    color: var(--txt-dark-m);
+    letter-spacing: 0.05em;
+}
+
+.egg-text {
+    font-family: var(--f-body);
+    font-weight: 300;
+    font-size: clamp(6px, 0.65vw, 8px);
+    color: rgba(58,48,40,0.35);
+    letter-spacing: 0.04em;
+}
+
+/* ============================================
+   REVEAL ANIMATION for inside-right items
+   ============================================ */
+
+.reveal-item {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.card.is-open .reveal-item {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+}
+
+.card.is-open .reveal-item:nth-child(1) { transition-delay: 0.08s; }
+.card.is-open .reveal-item:nth-child(2) { transition-delay: 0.22s; }
+.card.is-open .reveal-item:nth-child(3) { transition-delay: 0.36s; }
+.card.is-open .reveal-item:nth-child(4) { transition-delay: 0.50s; }
+.card.is-open .reveal-item:nth-child(5) { transition-delay: 0.64s; }
+
+/* ============================================
+   FALLBACK BUTTON
+   ============================================ */
+
+.fallback-btn {
+    position: fixed;
+    bottom: clamp(12px, 3vh, 24px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    font-family: var(--f-body);
+    font-weight: 400;
+    font-size: clamp(9px, 0.9vw, 12px);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 6px 18px;
+    cursor: pointer;
+    transition: color 0.3s, border-color 0.3s;
+}
+
+.fallback-btn:hover {
+    color: rgba(255,255,255,0.45);
+    border-color: rgba(255,255,255,0.15);
+}
+
+.fallback-btn.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+}
+
+/* ============================================
+   RESPONSIVE FINE-TUNING
+   ============================================ */
+
+@media (max-width: 768px) {
+    .cover-title .title-line {
+        font-size: clamp(18px, 6vw, 32px);
+    }
+    .ir-title {
+        font-size: clamp(15px, 4.5vw, 24px);
+    }
+    .il-equation {
+        font-size: clamp(20px, 5.5vw, 30px);
+    }
+    .bg-eq {
+        font-size: clamp(8px, 2.5vw, 12px);
+    }
+}
+
+@media (max-width: 400px) {
+    .cover-pre { font-size: 7px; }
+    .cover-tagline { font-size: 7.5px; }
+    .ir-body { font-size: 7.5px; }
+}
+
+/* Landscape phones */
+@media (max-height: 500px) and (orientation: landscape) {
+    :root {
+        --page-w: min(28vh, 220px);
+        --closed-scale: 1.12;
+    }
+}
