@@ -84,7 +84,6 @@
     const cardCover   = document.getElementById('cardCover');
     const cardBase    = document.getElementById('cardBase');
     const dragHint    = document.getElementById('dragHint');
-    const fallbackBtn = document.getElementById('fallbackBtn');
     const easterEgg   = document.getElementById('easterEgg');
     const foldShadowL = cardBase.querySelector('.fold-shadow.left');
     const foldShadowR = document.querySelector('.cover-back .fold-shadow.right');
@@ -412,12 +411,10 @@
 
     function onCardOpened() {
         card.classList.add('is-open');
-        fallbackBtn.classList.add('hidden');
     }
 
     function onCardClosed() {
         card.classList.remove('is-open');
-        fallbackBtn.classList.remove('hidden');
         // Re-show hint if no further interaction
         // (keep hidden if user has already interacted)
     }
@@ -469,23 +466,7 @@
     }
 
     // ========================================================
-    // 17. FALLBACK BUTTON
-    // ========================================================
-
-    fallbackBtn.addEventListener('click', () => {
-        if (state === State.OPEN || state === State.SIMULATING) return;
-        hasInteracted = true;
-        dragHint.classList.add('hidden');
-        angularVelocity = 160; // give it a nice flick
-        targetAngle     = PHYSICS.MAX_ANGLE;
-        state           = State.SIMULATING;
-        lastFrameTime   = performance.now();
-        ensureAnimLoop();
-        playPaperSound();
-    });
-
-    // ========================================================
-    // 18. INITIALISATION
+    // 17. INITIALISATION
     // ========================================================
 
     function init() {

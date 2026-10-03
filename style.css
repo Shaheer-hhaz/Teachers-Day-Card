@@ -190,16 +190,17 @@ body {
     position: absolute;
     left: 50%;
     top: 0;
-    width: 2px;
+    width: 4px;
     height: 100%;
     background: linear-gradient(to right,
-        rgba(120,105,85,0.25),
-        rgba(160,148,132,0.4),
-        rgba(120,105,85,0.25));
-    transform: translateX(-50%);
+        rgba(0,0,0,0.1),
+        rgba(0,0,0,0.25) 50%,
+        rgba(0,0,0,0.1));
+    transform: translateX(-50%) translateZ(-0.5px);
     z-index: 4;
-    border-radius: 1px;
+    border-radius: 2px;
     pointer-events: none;
+    box-shadow: 0 0 5px rgba(0,0,0,0.25);
 }
 
 /* ============================================
@@ -213,26 +214,28 @@ body {
     z-index: 1;
     border-radius: inherit;
     background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E"),
         repeating-linear-gradient(
             0deg,
             transparent, transparent 3px,
-            rgba(139,119,88,0.018) 3px, rgba(139,119,88,0.018) 4px),
+            rgba(139,119,88,0.02) 3px, rgba(139,119,88,0.02) 4px),
         repeating-linear-gradient(
             90deg,
             transparent, transparent 4px,
-            rgba(139,119,88,0.012) 4px, rgba(139,119,88,0.012) 5px);
+            rgba(139,119,88,0.015) 4px, rgba(139,119,88,0.015) 5px);
 }
 
 .page-texture.dark {
     background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E"),
         repeating-linear-gradient(
             45deg,
             transparent, transparent 1px,
-            rgba(255,255,255,0.006) 1px, rgba(255,255,255,0.006) 2px),
+            rgba(255,255,255,0.01) 1px, rgba(255,255,255,0.01) 2px),
         repeating-linear-gradient(
             -45deg,
             transparent, transparent 2px,
-            rgba(255,255,255,0.004) 2px, rgba(255,255,255,0.004) 3px);
+            rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 3px);
 }
 
 /* ============================================
@@ -242,22 +245,23 @@ body {
 .fold-shadow {
     position: absolute;
     top: 0;
-    width: 22px;
+    width: 35px;
     height: 100%;
     pointer-events: none;
     z-index: 6;
     opacity: 0;
     transition: none;
+    mix-blend-mode: multiply;
 }
 
 .fold-shadow.left {
     left: 0;
-    background: linear-gradient(to right, rgba(0,0,0,0.18), transparent);
+    background: linear-gradient(to right, rgba(20,15,10,0.25), transparent);
 }
 
 .fold-shadow.right {
     right: 0;
-    background: linear-gradient(to left, rgba(0,0,0,0.18), transparent);
+    background: linear-gradient(to left, rgba(20,15,10,0.25), transparent);
 }
 
 /* ============================================
@@ -274,9 +278,14 @@ body {
     overflow: hidden;
     pointer-events: auto;
     touch-action: none;
+    transform: translateZ(-1px);
     box-shadow:
-        3px 4px 14px rgba(0,0,0,0.12),
-        inset -1px 0 4px rgba(0,0,0,0.04);
+        1px 2px 4px rgba(0,0,0,0.15),
+        inset 2px 0 6px rgba(0,0,0,0.08),
+        inset -1px 0 2px rgba(255,255,255,0.6),
+        inset 0 1px 2px rgba(255,255,255,0.6),
+        inset 0 -1px 2px rgba(0,0,0,0.05);
+    border-left: 1px solid rgba(0,0,0,0.08);
 }
 
 /* ============================================
@@ -313,6 +322,7 @@ body {
 /* ─── FRONT FACE (cover design) ─── */
 
 .cover-front {
+    transform: translateZ(1px);
     background: linear-gradient(158deg,
         var(--cover-light) 0%,
         var(--cover-base) 45%,
@@ -463,7 +473,7 @@ body {
 /* ─── BACK FACE (inside left) ─── */
 
 .cover-back {
-    transform: rotateY(180deg);
+    transform: rotateY(180deg) translateZ(1px);
     background: linear-gradient(172deg, var(--paper) 0%, var(--paper-dark) 100%);
     border-radius: 5px 0 0 5px;
     display: flex;
@@ -471,8 +481,12 @@ body {
     justify-content: center;
     padding: 8%;
     box-shadow:
-        -3px 4px 14px rgba(0,0,0,0.12),
-        inset 1px 0 4px rgba(0,0,0,0.04);
+        -1px 2px 4px rgba(0,0,0,0.15),
+        inset -2px 0 6px rgba(0,0,0,0.08),
+        inset 1px 0 2px rgba(255,255,255,0.6),
+        inset 0 1px 2px rgba(255,255,255,0.6),
+        inset 0 -1px 2px rgba(0,0,0,0.05);
+    border-right: 1px solid rgba(0,0,0,0.08);
 }
 
 .inside-left {
@@ -638,62 +652,6 @@ body {
     font-size: clamp(6px, 0.65vw, 8px);
     color: rgba(58,48,40,0.35);
     letter-spacing: 0.04em;
-}
-
-/* ============================================
-   REVEAL ANIMATION for inside-right items
-   ============================================ */
-
-.reveal-item {
-    opacity: 0;
-    transform: translateY(10px);
-}
-
-.card.is-open .reveal-item {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.65s ease, transform 0.65s ease;
-}
-
-.card.is-open .reveal-item:nth-child(1) { transition-delay: 0.08s; }
-.card.is-open .reveal-item:nth-child(2) { transition-delay: 0.22s; }
-.card.is-open .reveal-item:nth-child(3) { transition-delay: 0.36s; }
-.card.is-open .reveal-item:nth-child(4) { transition-delay: 0.50s; }
-.card.is-open .reveal-item:nth-child(5) { transition-delay: 0.64s; }
-
-/* ============================================
-   FALLBACK BUTTON
-   ============================================ */
-
-.fallback-btn {
-    position: fixed;
-    bottom: clamp(12px, 3vh, 24px);
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    font-family: var(--f-body);
-    font-weight: 400;
-    font-size: clamp(9px, 0.9vw, 12px);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.25);
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 20px;
-    padding: 6px 18px;
-    cursor: pointer;
-    transition: color 0.3s, border-color 0.3s;
-}
-
-.fallback-btn:hover {
-    color: rgba(255,255,255,0.45);
-    border-color: rgba(255,255,255,0.15);
-}
-
-.fallback-btn.hidden {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.4s;
 }
 
 /* ============================================
