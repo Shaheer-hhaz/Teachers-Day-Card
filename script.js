@@ -135,6 +135,9 @@
         activePointerId = e.pointerId;
         captureTarget   = this;
 
+        // Initialize audio on first user interaction
+        initAudio();
+
         // Capture pointer for reliable tracking even outside the element
         try { this.setPointerCapture(e.pointerId); } catch (_) { /* ok */ }
 
@@ -174,6 +177,8 @@
     // 9.  DRAG CALCULATIONS
     // ========================================================
 
+    let lastDragSoundTime = 0;
+
     function startDrag(e) {
         // First interaction: hide hint
         if (!hasInteracted) {
@@ -197,6 +202,13 @@
         // Cancel any running simulation
         angularVelocity = 0;
         state = State.DRAGGING;
+
+        // Play drag sound sparingly
+        const now = performance.now();
+        if (now - lastDragSoundTime > 600) {
+            playSound('drag');
+            lastDragSoundTime = now;
+        }
 
         // Remove settled classes (enable re-opening / re-closing)
         card.classList.remove('is-open');
@@ -266,11 +278,6 @@
         state = State.SIMULATING;
         lastFrameTime = performance.now();
         ensureAnimLoop();
-
-        // Play a subtle paper sound on first open
-        if (targetAngle === PHYSICS.MAX_ANGLE) {
-            playPaperSound();
-        }
     }
 
     /**
@@ -413,10 +420,12 @@
 
     function onCardOpened() {
         card.classList.add('is-open');
+        playSound('settle_open');
     }
 
     function onCardClosed() {
         card.classList.remove('is-open');
+        playSound('settle_close');
         // Re-show hint if no further interaction
         // (keep hidden if user has already interacted)
     }
@@ -426,45 +435,120 @@
     //     Triggered ONLY after user interaction (no autoplay)
     // ========================================================
 
-    let hasPlayedSound = false;
+    let audioUnlocked = false;
 
-    function playPaperSound() {
-        if (hasPlayedSound) return;
-        hasPlayedSound = true;
-
+    function initAudio() {
+        if (audioUnlocked) return;
         try {
-            const ctx      = new (window.AudioContext || window.webkitAudioContext)();
-            const duration = 0.28;
-            const sr       = ctx.sampleRate;
-            const len      = Math.floor(sr * duration);
-            const buffer   = ctx.createBuffer(1, len, sr);
-            const data     = buffer.getChannelData(0);
-
-            // Generate filtered noise burst with exponential decay
-            for (let i = 0; i < len; i++) {
-                const t        = i / sr;
-                const envelope = Math.exp(-t * 14) * 0.08;
-                data[i]        = (Math.random() * 2 - 1) * envelope;
-            }
-
-            const source = ctx.createBufferSource();
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            // Play a silent buffer to unlock on mobile/safari
+            const buffer = audioCtx.createBuffer(1, 1, 22050);
+            const source = audioCtx.createBufferSource();
             source.buffer = buffer;
-
-            // Band-pass filter to sound like paper
-            const bpf       = ctx.createBiquadFilter();
-            bpf.type        = 'bandpass';
-            bpf.frequency.value = 2200;
-            bpf.Q.value     = 0.6;
-
-            source.connect(bpf);
-            bpf.connect(ctx.destination);
+            source.connect(audioCtx.destination);
             source.start();
+            audioUnlocked = true;
+        } catch (_) {}
+    }
 
-            // Clean up after playback
-            source.onended = () => ctx.close();
-        } catch (_) {
-            // Audio not supported — fail silently
-        }
+    function playSound(type) {
+        if (!audioUnlocked || !audioCtx) return;
+        
+        try {
+            const sr = audioCtx.sampleRate;
+            let duration = 0.1;
+            let freq = 2000;
+            let q = 0.5;
+            let volume = 0.05;
+            let noiseType = 'bandpass';
+            
+            if (type === 'drag') {
+                duration = 0.35;
+                freq = 1400;
+                volume = 0.025;
+                q = 0.3;
+            } else if (type === 'settle_open') {
+                duration = 0.15;
+                freq = 2800;
+                volume = 0.02;
+                q = 0.8;
+            } else if (type === 'settle_close') {
+                duration = 0.18;
+                freq = 700; // deeper thud
+                volume = 0.035;
+                q = 0.8;
+                noiseType = 'lowpass';
+            }
+            
+            const len = Math.floor(sr * duration);
+            const buffer = audioCtx.createBuffer(1, len, sr);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < len; i++) {
+                const t = i / sr;
+                let env = 1;
+                if (type === 'drag') {
+                    env = Math.exp(-t * 12) * (1 - Math.exp(-t * 60)); // soft attack
+                } else {
+                    env = Math.exp(-t * 30); // sharp decay
+                }
+                data[i] = (Math.random() * 2 - 1) * env * volume;
+            }
+            
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = noiseType;
+            filter.frequency.value = freq;
+            filter.Q.value = q;
+            
+            source.connect(filter);
+            filter.connect(audioCtx.destination);
+            source.start();
+            
+            source.onended = () => {
+                source.disconnect();
+                filter.disconnect();
+            };
+        } catch (e) {}
+    }
+
+    // ========================================================
+    // 17. SHOOTING STARS
+    // ========================================================
+
+    function spawnShootingStar() {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        
+        const bg = document.querySelector('.bg');
+        if (!bg) return;
+        
+        const star = document.createElement('div');
+        star.classList.add('shooting-star');
+        
+        // Spawn predominantly in upper/right areas to drift diagonally left/down
+        const top = Math.random() * 45;
+        const left = 40 + Math.random() * 60;
+        
+        star.style.top = `${top}%`;
+        star.style.left = `${left}%`;
+        
+        const duration = 1.8 + Math.random() * 1.5;
+        star.style.animationDuration = `${duration}s`;
+        
+        const width = 60 + Math.random() * 80;
+        star.style.width = `${width}px`;
+        
+        bg.appendChild(star);
+        
+        setTimeout(() => {
+            if (star.parentNode) star.parentNode.removeChild(star);
+        }, duration * 1000 + 100);
+        
+        // Very rare, subtle frequency
+        const nextSpawn = 5000 + Math.random() * 10000;
+        setTimeout(spawnShootingStar, nextSpawn);
     }
 
     // ========================================================
@@ -478,6 +562,9 @@
         targetAngle     = PHYSICS.MIN_ANGLE;
         state           = State.CLOSED;
         renderCard();
+
+        // Start subtle shooting stars
+        setTimeout(spawnShootingStar, 3000);
     }
 
     init();

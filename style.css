@@ -158,6 +158,46 @@ body {
 }
 
 /* ============================================
+   SHOOTING STARS
+   ============================================ */
+
+.shooting-star {
+    position: absolute;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(196,163,90,0.6), transparent);
+    border-radius: 1px;
+    filter: drop-shadow(0 0 2px rgba(196,163,90,0.3));
+    animation: shoot 2s ease-out forwards;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shooting-star {
+        display: none !important;
+    }
+}
+
+@keyframes shoot {
+    0% {
+        transform: rotate(-35deg) translateX(100px);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    80% {
+        opacity: 0;
+    }
+    100% {
+        transform: rotate(-35deg) translateX(-600px);
+        opacity: 0;
+    }
+}
+
+
+/* ============================================
    CARD SCENE — 3D perspective wrapper
    ============================================ */
 
