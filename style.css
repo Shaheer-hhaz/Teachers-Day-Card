@@ -10,21 +10,22 @@
 
 :root {
     /* ── Palette ── */
-    --bg-dark:       #070b16;
-    --bg-mid:        #0d1525;
-    --cover-base:    #0d1b3e;
-    --cover-light:   #15285a;
-    --cover-dark:    #091530;
-    --gold:          #c4a35a;
-    --gold-dim:      rgba(196,163,90,0.30);
-    --gold-faint:    rgba(196,163,90,0.08);
-    --paper:         #f5f0e8;
-    --paper-dark:    #e8e0d2;
-    --paper-fold:    #d0c7b8;
-    --txt-light:     #e8dfd3;
-    --txt-muted:     rgba(232,223,211,0.55);
-    --txt-dark:      #3a3028;
-    --txt-dark-m:    rgba(58,48,40,0.55);
+    --bg-dark:       #0a1122;
+    --bg-mid:        #121d36;
+    --cover-base:    #122659;
+    --cover-light:   #1a367a;
+    --cover-dark:    #0a183a;
+    --gold:          #d5b468;
+    --gold-dim:      rgba(213,180,104,0.45);
+    --gold-faint:    rgba(213,180,104,0.15);
+    --paper:         #fcf8f0;
+    --paper-dark:    #f0ebd8;
+    --paper-fold:    #dacdba;
+    --txt-light:     #f4ebde;
+    --txt-muted:     rgba(244,235,222,0.70);
+    --txt-dark:      #261f19;
+    --txt-dark-m:    rgba(38,31,25,0.75);
+    --txt-dark-body: rgba(38,31,25,0.88);
 
     /* ── Sizing ── */
     --page-w: min(24vw, 300px);
@@ -133,7 +134,7 @@ body {
 }
 
 @keyframes starPulse {
-    0%   { opacity: 0.65; }
+    0%   { opacity: 0.75; }
     100% { opacity: 1; }
 }
 
@@ -143,7 +144,7 @@ body {
     font-family: var(--f-eq);
     font-style: italic;
     font-size: clamp(9px, 1.1vw, 15px);
-    color: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.09);
     animation: eqFloat 9s ease-in-out infinite;
     letter-spacing: 0.04em;
     white-space: nowrap;
@@ -322,8 +323,8 @@ body {
     box-shadow:
         1px 2px 4px rgba(0,0,0,0.15),
         inset 2px 0 6px rgba(0,0,0,0.08),
-        inset -1px 0 2px rgba(255,255,255,0.6),
-        inset 0 1px 2px rgba(255,255,255,0.6),
+        inset -1px 0 2px rgba(255,255,255,0.85),
+        inset 0 1px 2px rgba(255,255,255,0.85),
         inset 0 -1px 2px rgba(0,0,0,0.05);
     border-left: 1px solid rgba(0,0,0,0.08);
 }
@@ -437,7 +438,7 @@ body {
 
 .cover-pre {
     font-family: var(--f-body);
-    font-weight: 300;
+    font-weight: 400;
     font-size: clamp(8px, 1vw, 13px);
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -468,8 +469,8 @@ body {
 
 .cover-tagline {
     font-family: var(--f-body);
-    font-weight: 300;
-    font-size: clamp(8px, 1vw, 12px);
+    font-weight: 400;
+    font-size: clamp(9px, 1.1vw, 13px);
     line-height: 1.65;
     color: var(--txt-muted);
     text-align: center;
@@ -523,8 +524,8 @@ body {
     box-shadow:
         -1px 2px 4px rgba(0,0,0,0.15),
         inset -2px 0 6px rgba(0,0,0,0.08),
-        inset 1px 0 2px rgba(255,255,255,0.6),
-        inset 0 1px 2px rgba(255,255,255,0.6),
+        inset 1px 0 2px rgba(255,255,255,0.85),
+        inset 0 1px 2px rgba(255,255,255,0.85),
         inset 0 -1px 2px rgba(0,0,0,0.05);
     border-right: 1px solid rgba(0,0,0,0.08);
 }
@@ -560,8 +561,8 @@ body {
 
 .il-eq-label {
     font-family: var(--f-body);
-    font-weight: 300;
-    font-size: clamp(6px, 0.7vw, 9px);
+    font-weight: 400;
+    font-size: clamp(7px, 0.8vw, 10px);
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--txt-dark-m);
@@ -577,8 +578,8 @@ body {
 .il-quote {
     font-family: var(--f-display);
     font-style: normal;
-    font-weight: 400;
-    font-size: clamp(9px, 1.1vw, 14px);
+    font-weight: 500;
+    font-size: clamp(10px, 1.2vw, 15px);
     line-height: 1.7;
     color: var(--txt-dark-m);
     border: none;
@@ -611,7 +612,7 @@ body {
 
 .ir-title {
     font-family: var(--f-display);
-    font-weight: 500;
+    font-weight: 600;
     font-size: clamp(14px, 2.4vw, 26px);
     color: var(--txt-dark);
     letter-spacing: 0.02em;
@@ -620,10 +621,10 @@ body {
 
 .ir-body {
     font-family: var(--f-body);
-    font-weight: 300;
-    font-size: clamp(8px, 1vw, 12px);
-    line-height: 1.7;
-    color: var(--txt-dark-m);
+    font-weight: 400;
+    font-size: clamp(9px, 1.1vw, 13px);
+    line-height: 1.6;
+    color: var(--txt-dark-body);
 }
 
 .ir-body em {
@@ -641,7 +642,7 @@ body {
 
 .closing-line {
     font-family: var(--f-display);
-    font-weight: 500;
+    font-weight: 600;
     font-size: clamp(10px, 1.4vw, 16px);
     color: var(--txt-dark);
 }

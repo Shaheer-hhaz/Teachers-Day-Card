@@ -372,7 +372,7 @@
         const scale       = 1 + (closedScale - 1) * (1 - progress);
         const shiftPct    = -(1 - progress) * 25;   // % of card container width
         cardWrapper.style.transform =
-            `translateX(${shiftPct}%) scale(${scale})`;
+            `scale(${scale}) translateX(${shiftPct}%)`;
 
         // ── Fold shadows (peak at 90°) ──
         const shadowFactor = Math.sin(aRad);
@@ -436,6 +436,9 @@
     // ========================================================
 
     let audioUnlocked = false;
+    let isAmbientPlaying = false;
+    let ambientGain = null;
+    let ambientOscillators = [];
 
     function initAudio() {
         if (audioUnlocked) return;
@@ -448,7 +451,74 @@
             source.connect(audioCtx.destination);
             source.start();
             audioUnlocked = true;
+
+            initAmbientAudio();
         } catch (_) {}
+    }
+
+    function initAmbientAudio() {
+        if (!audioCtx || isAmbientPlaying) return;
+        isAmbientPlaying = true;
+        
+        ambientGain = audioCtx.createGain();
+        ambientGain.gain.value = 0; // start silent
+        
+        // very gentle low-pass filter
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 600; 
+        filter.Q.value = 0.2;
+        
+        ambientGain.connect(filter);
+        filter.connect(audioCtx.destination);
+        
+        // Warm chord frequencies: E2, B2, D#3, F#3, A3
+        const freqs = [82.41, 123.47, 155.56, 185.00, 220.00];
+        
+        freqs.forEach((freq) => {
+            const osc = audioCtx.createOscillator();
+            osc.type = 'sine'; 
+            osc.frequency.value = freq + (Math.random() * 0.4 - 0.2); 
+            
+            const lfo = audioCtx.createOscillator();
+            lfo.type = 'sine';
+            lfo.frequency.value = 0.03 + (Math.random() * 0.02); 
+            
+            const oscGain = audioCtx.createGain();
+            oscGain.gain.value = 0.15;
+            
+            const lfoGain = audioCtx.createGain();
+            lfoGain.gain.value = 0.1;
+            
+            lfo.connect(lfoGain);
+            lfoGain.connect(oscGain.gain);
+            
+            osc.connect(oscGain);
+            oscGain.connect(ambientGain);
+            
+            osc.start();
+            lfo.start();
+            
+            ambientOscillators.push(osc);
+        });
+        
+        // Fade in
+        const now = audioCtx.currentTime;
+        ambientGain.gain.setValueAtTime(0, now);
+        ambientGain.gain.linearRampToValueAtTime(0.12, now + 4.0); // 4 seconds fade in
+        
+        // Handle page visibility
+        document.addEventListener('visibilitychange', () => {
+            if (!audioCtx) return;
+            const t = audioCtx.currentTime;
+            if (document.hidden) {
+                ambientGain.gain.cancelScheduledValues(t);
+                ambientGain.gain.linearRampToValueAtTime(0, t + 1.0);
+            } else {
+                ambientGain.gain.cancelScheduledValues(t);
+                ambientGain.gain.linearRampToValueAtTime(0.12, t + 2.0);
+            }
+        });
     }
 
     function playSound(type) {
