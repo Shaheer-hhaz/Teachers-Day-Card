@@ -698,7 +698,8 @@
             ctx.save();
             ctx.translate(issX, issY);
             ctx.rotate(angle);
-            const issScale = scaleFactor * 0.9;
+            // ~28% size increase
+            const issScale = scaleFactor * 1.16;
             ctx.scale(issScale, issScale);
 
             ctx.globalAlpha = 0.82;
@@ -751,9 +752,10 @@
         }
 
         // ── Hierarchical Solar System Motion State ──
+        const sunTrail = [];
         const earthTrail = [];
         const moonTrail = [];
-        const MAX_TRAIL_POINTS = 65;
+        const MAX_TRAIL_POINTS = 75;
 
         let timeSec = 0;
 
@@ -768,9 +770,9 @@
             const sunX = (width < 768 ? width * 0.82 : sunCenterX) + Math.cos(timeSec * galacticSpeed) * (width * 0.12);
             const sunY = (width < 768 ? height * 0.22 : sunCenterY) + Math.sin(timeSec * galacticSpeed * 0.7) * (height * 0.06);
 
-            // 2. EARTH ORBIT: Earth orbits moving Sun
-            const earthOrbitR_X = 68 * scaleFactor;
-            const earthOrbitR_Y = 32 * scaleFactor;
+            // 2. EARTH ORBIT: Earth orbits moving Sun (~28% larger orbital envelope)
+            const earthOrbitR_X = 88 * scaleFactor;
+            const earthOrbitR_Y = 41 * scaleFactor;
             const earthSpeed = 0.45;
 
             const earthRelX = Math.cos(timeSec * earthSpeed) * earthOrbitR_X;
@@ -779,8 +781,8 @@
             const earthX = sunX + earthRelX;
             const earthY = sunY + earthRelY;
 
-            // 3. MOON ORBIT: Moon orbits moving Earth
-            const moonOrbitR = 16 * scaleFactor;
+            // 3. MOON ORBIT: Moon orbits moving Earth (~30% larger orbital radius)
+            const moonOrbitR = 21 * scaleFactor;
             const moonSpeed = 2.4;
 
             const moonRelX = Math.cos(timeSec * moonSpeed) * moonOrbitR;
@@ -790,11 +792,35 @@
             const moonY = earthY + moonRelY;
 
             // Record trails
+            sunTrail.push({ x: sunX, y: sunY });
+            if (sunTrail.length > MAX_TRAIL_POINTS) sunTrail.shift();
+
             earthTrail.push({ x: earthX, y: earthY });
             if (earthTrail.length > MAX_TRAIL_POINTS) earthTrail.shift();
 
             moonTrail.push({ x: moonX, y: moonY });
             if (moonTrail.length > MAX_TRAIL_POINTS) moonTrail.shift();
+
+            // ── Render Sun Trajectory Trail (Galactic Motion) ──
+            if (sunTrail.length > 2) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(sunTrail[0].x, sunTrail[0].y);
+                for (let i = 1; i < sunTrail.length; i++) {
+                    ctx.lineTo(sunTrail[i].x, sunTrail[i].y);
+                }
+                const gradSun = ctx.createLinearGradient(
+                    sunTrail[0].x, sunTrail[0].y,
+                    sunX, sunY
+                );
+                gradSun.addColorStop(0, 'rgba(213, 180, 104, 0)');
+                gradSun.addColorStop(1, 'rgba(235, 195, 115, 0.35)');
+                ctx.strokeStyle = gradSun;
+                ctx.lineWidth = 1.2 * scaleFactor;
+                ctx.setLineDash([4, 4]);
+                ctx.stroke();
+                ctx.restore();
+            }
 
             // ── Render Earth Motion Trail (Trochoid / Helix) ──
             if (earthTrail.length > 2) {
@@ -809,9 +835,9 @@
                     earthX, earthY
                 );
                 grad.addColorStop(0, 'rgba(100, 180, 240, 0)');
-                grad.addColorStop(1, 'rgba(140, 200, 255, 0.25)');
+                grad.addColorStop(1, 'rgba(140, 200, 255, 0.28)');
                 ctx.strokeStyle = grad;
-                ctx.lineWidth = 1.0 * scaleFactor;
+                ctx.lineWidth = 1.2 * scaleFactor;
                 ctx.setLineDash([2, 2]);
                 ctx.stroke();
                 ctx.restore();
@@ -830,59 +856,186 @@
                     moonX, moonY
                 );
                 gradM.addColorStop(0, 'rgba(220, 220, 220, 0)');
-                gradM.addColorStop(1, 'rgba(220, 220, 230, 0.22)');
+                gradM.addColorStop(1, 'rgba(220, 220, 230, 0.25)');
                 ctx.strokeStyle = gradM;
-                ctx.lineWidth = 0.7 * scaleFactor;
+                ctx.lineWidth = 0.8 * scaleFactor;
                 ctx.stroke();
                 ctx.restore();
             }
 
-            // ── Render Sun ──
+            // ── Render Sun (30% larger, with plasma surface activity & granulation) ──
             ctx.save();
-            const sunR = 7.5 * scaleFactor;
-            const sunGlow = ctx.createRadialGradient(sunX, sunY, sunR * 0.2, sunX, sunY, sunR * 3.5);
-            sunGlow.addColorStop(0, 'rgba(255, 235, 170, 0.95)');
-            sunGlow.addColorStop(0.3, 'rgba(213, 180, 104, 0.45)');
+            const sunR = 9.8 * scaleFactor;
+            
+            // Solar Corona
+            const sunGlow = ctx.createRadialGradient(sunX, sunY, sunR * 0.2, sunX, sunY, sunR * 3.6);
+            sunGlow.addColorStop(0, 'rgba(255, 245, 200, 0.95)');
+            sunGlow.addColorStop(0.35, 'rgba(235, 185, 95, 0.45)');
             sunGlow.addColorStop(1, 'rgba(213, 180, 104, 0)');
 
             ctx.fillStyle = sunGlow;
             ctx.beginPath();
-            ctx.arc(sunX, sunY, sunR * 3.5, 0, Math.PI * 2);
+            ctx.arc(sunX, sunY, sunR * 3.6, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = '#fff6d5';
+            // Solar Disc base
+            const discGrad = ctx.createRadialGradient(sunX - sunR * 0.3, sunY - sunR * 0.3, 0, sunX, sunY, sunR);
+            discGrad.addColorStop(0, '#ffffff');
+            discGrad.addColorStop(0.4, '#ffe082');
+            discGrad.addColorStop(1, '#ff9800');
+            ctx.fillStyle = discGrad;
             ctx.beginPath();
             ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2);
             ctx.fill();
+
+            // Solar plasma texture & surface activity
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2);
+            ctx.clip();
+
+            // Plasma convection cell details
+            const pRot = timeSec * 0.15;
+            ctx.fillStyle = 'rgba(255, 110, 0, 0.28)';
+            ctx.beginPath();
+            ctx.arc(sunX + Math.cos(pRot) * sunR * 0.4, sunY + Math.sin(pRot) * sunR * 0.4, sunR * 0.45, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = 'rgba(255, 230, 150, 0.35)';
+            ctx.beginPath();
+            ctx.arc(sunX + Math.cos(pRot + 2.2) * sunR * 0.3, sunY + Math.sin(pRot + 2.2) * sunR * 0.3, sunR * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+
             ctx.restore();
 
-            // ── Render Earth ──
+            // Solar Prominences / Flares (subtle limb activity)
+            ctx.fillStyle = 'rgba(255, 150, 40, 0.35)';
+            const fAngle = timeSec * 0.3;
+            ctx.beginPath();
+            ctx.arc(sunX + Math.cos(fAngle) * sunR * 1.05, sunY + Math.sin(fAngle) * sunR * 1.05, sunR * 0.22, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+
+            // ── Render Earth (30% larger, with realistic continents, oceans, clouds, atmosphere) ──
             ctx.save();
-            const earthR = 3.6 * scaleFactor;
-            const earthGlow = ctx.createRadialGradient(earthX, earthY, earthR * 0.2, earthX, earthY, earthR * 2.2);
-            earthGlow.addColorStop(0, 'rgba(100, 180, 255, 0.9)');
-            earthGlow.addColorStop(0.5, 'rgba(60, 130, 220, 0.4)');
-            earthGlow.addColorStop(1, 'rgba(60, 130, 220, 0)');
+            const earthR = 4.7 * scaleFactor;
+
+            // Atmosphere outer cyan glow
+            const earthGlow = ctx.createRadialGradient(earthX, earthY, earthR * 0.2, earthX, earthY, earthR * 2.4);
+            earthGlow.addColorStop(0, 'rgba(100, 190, 255, 0.85)');
+            earthGlow.addColorStop(0.5, 'rgba(40, 120, 220, 0.35)');
+            earthGlow.addColorStop(1, 'rgba(40, 120, 220, 0)');
 
             ctx.fillStyle = earthGlow;
             ctx.beginPath();
-            ctx.arc(earthX, earthY, earthR * 2.2, 0, Math.PI * 2);
+            ctx.arc(earthX, earthY, earthR * 2.4, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = '#5dade2';
+            // Ocean base
+            const oceanGrad = ctx.createRadialGradient(earthX - earthR * 0.3, earthY - earthR * 0.3, earthR * 0.1, earthX, earthY, earthR);
+            oceanGrad.addColorStop(0, '#3498db');
+            oceanGrad.addColorStop(0.7, '#1f618d');
+            oceanGrad.addColorStop(1, '#114b70');
+
+            ctx.fillStyle = oceanGrad;
             ctx.beginPath();
             ctx.arc(earthX, earthY, earthR, 0, Math.PI * 2);
             ctx.fill();
-            ctx.restore();
 
-            // ── Render Moon ──
+            // Surface texture: Continents & Clouds clipped to Earth sphere
             ctx.save();
-            const moonR = 1.4 * scaleFactor;
-            ctx.fillStyle = 'rgba(235, 240, 245, 0.9)';
+            ctx.beginPath();
+            ctx.arc(earthX, earthY, earthR, 0, Math.PI * 2);
+            ctx.clip();
+
+            // Slow Earth rotation
+            const rot = timeSec * 0.08;
+
+            // Continent Landmasses (Green/Amber patches)
+            ctx.fillStyle = '#2e7d32'; // North America / Eurasia tone
+            ctx.beginPath();
+            ctx.arc(earthX + Math.cos(rot) * earthR * 0.35, earthY + Math.sin(rot) * earthR * 0.35, earthR * 0.48, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#558b2f'; // Africa / S.America tone
+            ctx.beginPath();
+            ctx.arc(earthX + Math.cos(rot + 2.4) * earthR * 0.4, earthY + Math.sin(rot + 2.4) * earthR * 0.4, earthR * 0.42, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Polar ice cap
+            ctx.fillStyle = 'rgba(240, 248, 255, 0.75)';
+            ctx.beginPath();
+            ctx.arc(earthX - earthR * 0.1, earthY - earthR * 0.75, earthR * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Atmospheric Cloud Swirls
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.42)';
+            ctx.beginPath();
+            ctx.arc(earthX + Math.cos(rot * 1.3) * earthR * 0.2, earthY + Math.sin(rot * 1.3) * earthR * 0.2 - earthR * 0.15, earthR * 0.6, 0.2, Math.PI * 0.8);
+            ctx.fill();
+
+            // 3D Spherical shadow overlay
+            const shadowGrad = ctx.createRadialGradient(earthX - earthR * 0.4, earthY - earthR * 0.4, earthR * 0.2, earthX, earthY, earthR * 1.05);
+            shadowGrad.addColorStop(0, 'rgba(0,0,0,0)');
+            shadowGrad.addColorStop(0.6, 'rgba(5,15,35,0.18)');
+            shadowGrad.addColorStop(1, 'rgba(5,15,35,0.55)');
+            ctx.fillStyle = shadowGrad;
+            ctx.beginPath();
+            ctx.arc(earthX, earthY, earthR, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore(); // end Earth clip
+            ctx.restore(); // end Earth render
+
+            // ── Render Moon (30% larger, with craters & lunar surface shading) ──
+            ctx.save();
+            const moonR = 1.8 * scaleFactor;
+
+            // Moon base disc
+            const moonGrad = ctx.createRadialGradient(moonX - moonR * 0.3, moonY - moonR * 0.3, 0, moonX, moonY, moonR);
+            moonGrad.addColorStop(0, '#e5e8e8');
+            moonGrad.addColorStop(0.7, '#b2babb');
+            moonGrad.addColorStop(1, '#7f8c8d');
+
+            ctx.fillStyle = moonGrad;
             ctx.beginPath();
             ctx.arc(moonX, moonY, moonR, 0, Math.PI * 2);
             ctx.fill();
-            ctx.restore();
+
+            // Lunar Surface Texture: Maria & Craters
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, moonR, 0, Math.PI * 2);
+            ctx.clip();
+
+            // Lunar Maria (Dark plains)
+            ctx.fillStyle = 'rgba(70, 78, 88, 0.55)';
+            ctx.beginPath();
+            ctx.arc(moonX - moonR * 0.25, moonY - moonR * 0.2, moonR * 0.38, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(moonX + moonR * 0.2, moonY + moonR * 0.25, moonR * 0.32, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Crater rims / highlights
+            ctx.fillStyle = 'rgba(245, 250, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(moonX + moonR * 0.15, moonY - moonR * 0.35, moonR * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 3D Spherical Shadow overlay
+            const moonShadow = ctx.createRadialGradient(moonX - moonR * 0.4, moonY - moonR * 0.4, moonR * 0.2, moonX, moonY, moonR);
+            moonShadow.addColorStop(0, 'rgba(0,0,0,0)');
+            moonShadow.addColorStop(1, 'rgba(20,25,35,0.48)');
+            ctx.fillStyle = moonShadow;
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, moonR, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore(); // end Moon clip
+            ctx.restore(); // end Moon render
         }
 
         // ── Main Render Loop ──
