@@ -22,6 +22,7 @@
          BACKGROUND — floating physics equations
          ============================================ -->
     <div class="bg" aria-hidden="true">
+        <canvas id="celestialCanvas"></canvas>
         <span class="bg-eq" style="top:7%;left:4%">F = ma</span>
         <span class="bg-eq" style="top:14%;right:7%;animation-delay:1.4s">E = mc²</span>
         <span class="bg-eq" style="top:42%;left:2%;animation-delay:2.6s">p = mv</span>
@@ -173,30 +174,30 @@
                             <!-- Pendulum illustration -->
                             <svg class="il-pendulum" viewBox="0 0 140 100" aria-hidden="true">
                                 <!-- Arc path -->
-                                <path d="M 30 12 Q 70 95 110 12" fill="none" stroke="rgba(58,48,40,0.08)"
-                                    stroke-width="0.6" stroke-dasharray="4,3" />
+                                <path d="M 30 12 Q 70 95 110 12" fill="none" stroke="rgba(45,35,25,0.30)"
+                                    stroke-width="0.8" stroke-dasharray="4,3" />
                                 <!-- String -->
-                                <line x1="70" y1="12" x2="92" y2="78" stroke="rgba(58,48,40,0.18)" stroke-width="0.7" />
+                                <line x1="70" y1="12" x2="92" y2="78" stroke="rgba(45,35,25,0.60)" stroke-width="0.9" />
                                 <!-- Pivot -->
-                                <circle cx="70" cy="12" r="2" fill="rgba(58,48,40,0.18)" />
+                                <circle cx="70" cy="12" r="2.2" fill="rgba(45,35,25,0.70)" />
                                 <!-- Bob -->
-                                <circle cx="92" cy="80" r="5" fill="none" stroke="rgba(58,48,40,0.18)"
-                                    stroke-width="0.7" />
+                                <circle cx="92" cy="80" r="5" fill="rgba(213,180,104,0.18)" stroke="rgba(45,35,25,0.70)"
+                                    stroke-width="0.9" />
                                 <!-- Angle arc -->
-                                <path d="M 70 30 Q 74 29 76 26" fill="none" stroke="rgba(58,48,40,0.12)"
-                                    stroke-width="0.5" />
+                                <path d="M 70 30 Q 74 29 76 26" fill="none" stroke="rgba(45,35,25,0.45)"
+                                    stroke-width="0.6" />
                                 <!-- θ label -->
-                                <text x="78" y="27" font-size="7" fill="rgba(58,48,40,0.18)" font-family="serif"
+                                <text x="78" y="27" font-size="7.5" fill="rgba(45,35,25,0.75)" font-family="serif"
                                     font-style="italic">θ</text>
                                 <!-- g arrow -->
-                                <line x1="120" y1="30" x2="120" y2="60" stroke="rgba(58,48,40,0.1)" stroke-width="0.5"
+                                <line x1="120" y1="30" x2="120" y2="60" stroke="rgba(45,35,25,0.50)" stroke-width="0.7"
                                     marker-end="url(#arrowDown)" />
-                                <text x="124" y="48" font-size="7" fill="rgba(58,48,40,0.12)" font-family="serif"
+                                <text x="124" y="48" font-size="7.5" fill="rgba(45,35,25,0.65)" font-family="serif"
                                     font-style="italic">g</text>
                                 <defs>
                                     <marker id="arrowDown" markerWidth="6" markerHeight="6" refX="3" refY="3"
                                         orient="auto">
-                                        <path d="M1,1 L3,5 L5,1" fill="rgba(58,48,40,0.1)" />
+                                        <path d="M1,1 L3,5 L5,1" fill="rgba(45,35,25,0.50)" />
                                     </marker>
                                 </defs>
                             </svg>

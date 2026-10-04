@@ -622,7 +622,323 @@
     }
 
     // ========================================================
-    // 17. INITIALISATION
+    // 18. CELESTIAL CANVAS ENGINE
+    //     - Ambient glowing twinkling stars
+    //     - Floating ISS drifting slowly across background
+    //     - Hierarchical Solar System Motion (Galactic frame -> Sun -> Earth -> Moon)
+    //     - Short motion trails for Earth & Moon
+    // ========================================================
+
+    function initCelestialCanvas() {
+        const canvas = document.getElementById('celestialCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let width = 0;
+        let height = 0;
+        let dpr = 1;
+
+        // Responsive scaling factor
+        let scaleFactor = 1;
+
+        // Ambient stars data
+        const ambientStars = [];
+        const NUM_STARS = 45;
+
+        function resize() {
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+
+            scaleFactor = width < 600 ? 0.65 : (width < 900 ? 0.85 : 1.0);
+        }
+
+        // Generate fixed ambient stars
+        function generateStars() {
+            ambientStars.length = 0;
+            for (let i = 0; i < NUM_STARS; i++) {
+                ambientStars.push({
+                    x: Math.random(), // percentage 0..1
+                    y: Math.random(), // percentage 0..1
+                    radius: 0.7 + Math.random() * 1.5,
+                    baseAlpha: 0.35 + Math.random() * 0.5,
+                    pulseSpeed: 0.8 + Math.random() * 1.8,
+                    phase: Math.random() * Math.PI * 2,
+                    hasHalo: Math.random() > 0.65
+                });
+            }
+        }
+
+        resize();
+        generateStars();
+        window.addEventListener('resize', resize);
+
+        // ── ISS State ──
+        let issProgress = 0.15; // 0..1
+        const ISS_DURATION = 65; // seconds per cross
+
+        function updateAndDrawISS(dt, now) {
+            issProgress += dt / ISS_DURATION;
+            if (issProgress > 1.1) issProgress = -0.1;
+
+            const startX = -60;
+            const endX = width + 60;
+            const issX = startX + (endX - startX) * issProgress;
+            
+            // Subtle undulating altitude
+            const issY = height * 0.16 + Math.sin(issProgress * Math.PI * 4) * 15;
+            
+            // Subtle rotation (-4° to +4°)
+            const angle = Math.sin(issProgress * Math.PI * 6) * (4 * Math.PI / 180);
+
+            ctx.save();
+            ctx.translate(issX, issY);
+            ctx.rotate(angle);
+            const issScale = scaleFactor * 0.9;
+            ctx.scale(issScale, issScale);
+
+            ctx.globalAlpha = 0.82;
+
+            // Main Truss Line
+            ctx.strokeStyle = 'rgba(215, 230, 255, 0.75)';
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            ctx.moveTo(-22, 0);
+            ctx.lineTo(22, 0);
+            ctx.stroke();
+
+            // Solar Array Panels Left & Right
+            const panelGlow = ctx.createLinearGradient(0, -14, 0, 14);
+            panelGlow.addColorStop(0, 'rgba(120, 200, 255, 0.7)');
+            panelGlow.addColorStop(0.5, 'rgba(213, 180, 104, 0.5)');
+            panelGlow.addColorStop(1, 'rgba(120, 200, 255, 0.7)');
+
+            ctx.fillStyle = panelGlow;
+            // Left Panels
+            ctx.fillRect(-20, -14, 7, 28);
+            ctx.fillRect(-11, -14, 7, 28);
+            // Right Panels
+            ctx.fillRect(4, -14, 7, 28);
+            ctx.fillRect(13, -14, 7, 28);
+
+            // Panel outlines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 0.6;
+            ctx.strokeRect(-20, -14, 7, 28);
+            ctx.strokeRect(-11, -14, 7, 28);
+            ctx.strokeRect(4, -14, 7, 28);
+            ctx.strokeRect(13, -14, 7, 28);
+
+            // Central Habitation Modules
+            ctx.fillStyle = 'rgba(240, 245, 255, 0.9)';
+            ctx.fillRect(-3, -5, 6, 10);
+            ctx.fillRect(-6, -2, 12, 4);
+
+            // Tiny blinking navigation LED
+            const blink = Math.sin(now * 0.004) > 0.3;
+            if (blink) {
+                ctx.fillStyle = 'rgba(255, 120, 100, 0.9)';
+                ctx.beginPath();
+                ctx.arc(0, -6, 1.2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        // ── Hierarchical Solar System Motion State ──
+        const earthTrail = [];
+        const moonTrail = [];
+        const MAX_TRAIL_POINTS = 65;
+
+        let timeSec = 0;
+
+        function drawSolarSystem(dt, now) {
+            timeSec += dt;
+
+            // 1. GALACTIC FRAME: Sun's motion through Milky Way
+            const sunCenterY = height * 0.28;
+            const sunCenterX = width * 0.78;
+            const galacticSpeed = 0.04;
+            
+            const sunX = (width < 768 ? width * 0.82 : sunCenterX) + Math.cos(timeSec * galacticSpeed) * (width * 0.12);
+            const sunY = (width < 768 ? height * 0.22 : sunCenterY) + Math.sin(timeSec * galacticSpeed * 0.7) * (height * 0.06);
+
+            // 2. EARTH ORBIT: Earth orbits moving Sun
+            const earthOrbitR_X = 68 * scaleFactor;
+            const earthOrbitR_Y = 32 * scaleFactor;
+            const earthSpeed = 0.45;
+
+            const earthRelX = Math.cos(timeSec * earthSpeed) * earthOrbitR_X;
+            const earthRelY = Math.sin(timeSec * earthSpeed) * earthOrbitR_Y;
+
+            const earthX = sunX + earthRelX;
+            const earthY = sunY + earthRelY;
+
+            // 3. MOON ORBIT: Moon orbits moving Earth
+            const moonOrbitR = 16 * scaleFactor;
+            const moonSpeed = 2.4;
+
+            const moonRelX = Math.cos(timeSec * moonSpeed) * moonOrbitR;
+            const moonRelY = Math.sin(timeSec * moonSpeed) * (moonOrbitR * 0.6);
+
+            const moonX = earthX + moonRelX;
+            const moonY = earthY + moonRelY;
+
+            // Record trails
+            earthTrail.push({ x: earthX, y: earthY });
+            if (earthTrail.length > MAX_TRAIL_POINTS) earthTrail.shift();
+
+            moonTrail.push({ x: moonX, y: moonY });
+            if (moonTrail.length > MAX_TRAIL_POINTS) moonTrail.shift();
+
+            // ── Render Earth Motion Trail (Trochoid / Helix) ──
+            if (earthTrail.length > 2) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(earthTrail[0].x, earthTrail[0].y);
+                for (let i = 1; i < earthTrail.length; i++) {
+                    ctx.lineTo(earthTrail[i].x, earthTrail[i].y);
+                }
+                const grad = ctx.createLinearGradient(
+                    earthTrail[0].x, earthTrail[0].y,
+                    earthX, earthY
+                );
+                grad.addColorStop(0, 'rgba(100, 180, 240, 0)');
+                grad.addColorStop(1, 'rgba(140, 200, 255, 0.25)');
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = 1.0 * scaleFactor;
+                ctx.setLineDash([2, 2]);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // ── Render Moon Motion Trail ──
+            if (moonTrail.length > 2) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(moonTrail[0].x, moonTrail[0].y);
+                for (let i = 1; i < moonTrail.length; i++) {
+                    ctx.lineTo(moonTrail[i].x, moonTrail[i].y);
+                }
+                const gradM = ctx.createLinearGradient(
+                    moonTrail[0].x, moonTrail[0].y,
+                    moonX, moonY
+                );
+                gradM.addColorStop(0, 'rgba(220, 220, 220, 0)');
+                gradM.addColorStop(1, 'rgba(220, 220, 230, 0.22)');
+                ctx.strokeStyle = gradM;
+                ctx.lineWidth = 0.7 * scaleFactor;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // ── Render Sun ──
+            ctx.save();
+            const sunR = 7.5 * scaleFactor;
+            const sunGlow = ctx.createRadialGradient(sunX, sunY, sunR * 0.2, sunX, sunY, sunR * 3.5);
+            sunGlow.addColorStop(0, 'rgba(255, 235, 170, 0.95)');
+            sunGlow.addColorStop(0.3, 'rgba(213, 180, 104, 0.45)');
+            sunGlow.addColorStop(1, 'rgba(213, 180, 104, 0)');
+
+            ctx.fillStyle = sunGlow;
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, sunR * 3.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#fff6d5';
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // ── Render Earth ──
+            ctx.save();
+            const earthR = 3.6 * scaleFactor;
+            const earthGlow = ctx.createRadialGradient(earthX, earthY, earthR * 0.2, earthX, earthY, earthR * 2.2);
+            earthGlow.addColorStop(0, 'rgba(100, 180, 255, 0.9)');
+            earthGlow.addColorStop(0.5, 'rgba(60, 130, 220, 0.4)');
+            earthGlow.addColorStop(1, 'rgba(60, 130, 220, 0)');
+
+            ctx.fillStyle = earthGlow;
+            ctx.beginPath();
+            ctx.arc(earthX, earthY, earthR * 2.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#5dade2';
+            ctx.beginPath();
+            ctx.arc(earthX, earthY, earthR, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // ── Render Moon ──
+            ctx.save();
+            const moonR = 1.4 * scaleFactor;
+            ctx.fillStyle = 'rgba(235, 240, 245, 0.9)';
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, moonR, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // ── Main Render Loop ──
+        let lastTime = performance.now();
+
+        function renderCelestial(now) {
+            const dt = Math.min((now - lastTime) / 1000, 0.05);
+            lastTime = now;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // 1. Render Ambient Stars
+            for (let i = 0; i < ambientStars.length; i++) {
+                const star = ambientStars[i];
+                const sx = star.x * width;
+                const sy = star.y * height;
+
+                const pulse = Math.sin(now * 0.001 * star.pulseSpeed + star.phase);
+                const alpha = Math.max(0.1, star.baseAlpha + pulse * 0.25);
+
+                ctx.save();
+                ctx.globalAlpha = alpha;
+
+                if (star.hasHalo && star.radius > 1.2) {
+                    const haloR = star.radius * 3.5;
+                    const haloGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, haloR);
+                    haloGrad.addColorStop(0, 'rgba(230, 240, 255, 0.6)');
+                    haloGrad.addColorStop(0.4, 'rgba(213, 180, 104, 0.2)');
+                    haloGrad.addColorStop(1, 'rgba(213, 180, 104, 0)');
+                    ctx.fillStyle = haloGrad;
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, haloR, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(sx, sy, star.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // 2. Render ISS
+            updateAndDrawISS(dt, now);
+
+            // 3. Render Hierarchical Solar System Motion & Trails
+            drawSolarSystem(dt, now);
+
+            requestAnimationFrame(renderCelestial);
+        }
+
+        requestAnimationFrame(renderCelestial);
+    }
+
+    // ========================================================
+    // 19. INITIALISATION
     // ========================================================
 
     function init() {
@@ -632,6 +948,9 @@
         targetAngle     = PHYSICS.MIN_ANGLE;
         state           = State.CLOSED;
         renderCard();
+
+        // Initialize background celestial system
+        initCelestialCanvas();
 
         // Start subtle shooting stars
         setTimeout(spawnShootingStar, 3000);
